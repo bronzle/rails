@@ -11,7 +11,6 @@ module Rails
 
         option_parser(options).parse! args
 
-        options[:log_stdout] = options[:daemonize].blank? && (options[:environment] || Rails.env) == "development"
         options[:server]     = args.shift
         options
       end
@@ -75,7 +74,7 @@ module Rails
       print_boot_information
       trap(:INT) { exit }
       create_tmp_directories
-      log_to_stdout if options[:log_stdout]
+      log_to_stdout
 
       super
     ensure
@@ -138,11 +137,13 @@ module Rails
       def log_to_stdout
         wrapped_app # touch the app so the logger is set up
 
-        console = ActiveSupport::Logger.new($stdout)
-        console.formatter = Rails.logger.formatter
-        console.level = Rails.logger.level
+        if Rails.application.config.logger_broadcast_console
+          console = ActiveSupport::Logger.new($stdout)
+          console.formatter = Rails.logger.formatter
+          console.level = Rails.logger.level
 
-        Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
+          Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
+        end
       end
   end
 end
