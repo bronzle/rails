@@ -291,7 +291,7 @@ module ActionDispatch
               }
             end
 
-            result.merge!(inner_options)
+            result.merge!(inner_options.symbolize_keys)
           end
         end
 
